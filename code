@@ -1,0 +1,60 @@
+import sys
+import time
+import random
+import math
+
+class Program():
+  __interpretation_started_timestamp__ = time.time() * 1000
+
+  pi = 3.141592653589793
+  D_gain = None
+  P_gain = None
+  base_speed = None
+  d_term = None
+  err = None
+  i_gain = None
+  i_sum = None
+  i_term = None
+  p_term = None
+  prev_err = None
+  ref_L = None
+  ref_R = None
+  speed_decay = None
+  u = None
+  v = None
+
+  def execMain(self):
+
+    
+    self.ref_L = brick.sensor("A4").read()
+    self.ref_R = brick.sensor("A3").read()
+    self.P_gain = 0.8
+    self.i_gain = 0.005
+    self.D_gain = 8
+    self.base_speed = 30
+    self.speed_decay = 0.35
+    self.i_sum = 0
+    self.prev_err = 0
+    self.v = self.base_speed
+    while True:
+      self.err = brick.sensor("A4").read() - brick.sensor("A3").read() - (self.ref_L - self.ref_R)
+      self.i_sum = max(-200, min(200, self.i_sum + self.err * 0.01))
+      self.p_term = self.P_gain * self.err
+      self.i_term = self.i_gain * self.i_sum
+      self.d_term = self.D_gain * (self.err - self.prev_err) * 0.1
+      self.u = self.p_term + self.i_term + self.d_term
+      self.prev_err = self.err
+      self.v = self.base_speed - self.speed_decay * abs(self.err)
+      brick.motor("M3").setPower(int(self.v + self.u))
+      
+      brick.motor("M4").setPower(int(self.v - self.u))
+      
+      script.wait(int(1.2))
+      
+
+def main():
+  program = Program()
+  program.execMain()
+
+if __name__ == '__main__':
+  main()
